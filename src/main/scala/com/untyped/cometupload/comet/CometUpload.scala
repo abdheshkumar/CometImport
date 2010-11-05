@@ -31,45 +31,60 @@ class CometUpload extends CometActor {
 	
 	private val importer: Importer = new DummyImporter
 	
-	override def render = <lift:children>
+	override def render = Group(
 		<div class="file-info">
-			File name: {fileContent.map(v => Text(v.fileName))}<br />
-			MIME Type: {fileContent.map(v => Box.legacyNullTest(v.mimeType).map(Text).openOr(Text("No mime type supplied")))}<br />
-			File length: {fileContent.map(v => Text(v.file.length.toString))}<br />
-			MD5 Hash: {fileContent.map(v => Text(hexEncode(md5(v.file))))}<br />
+			<p>Basic rubrick from <a href="http://demo.liftweb.net/file_upload">the file upload demo</a></p>
+			{ fileContent match {
+				case Full(file: FileParamHolder) => <div>
+					Currently uploading: {Text(file.fileName)}<br />
+					MIME Type: {Box.legacyNullTest(file.mimeType).map(Text).openOr(Text("No mime type supplied"))}<br />
+					File length: {Text(file.file.length.toString)}<br />
+					MD5 Hash: {Text(hexEncode(md5(file.file)))}<br />
+				</div>
+				case _ => Text("No file selected")
+			}}
 		</div>
-		<div id={stickyId} class="sticky-message">
-			{sticky.openOr(Text("watver"))}
+		<div class="sticky-message">
+			<strong>Status: </strong>
+			<span id={stickyId}>{ sticky.openOr(Text("Nothing to see here")) }</span>
 		</div>
-		<div id={messagesId} class="comet-messages">
-			{messages.flatMap(renderMessage _)}
-		</div>
-	</lift:children>
+		<div id={messagesId} class="messages">
+			{messages.flatMap(msg => <div class="message">{msg}</div>)}
+		</div>)
 
-	private def sendSticky(msg: NodeSeq) {
-		partialUpdate(SetHtml(stickyId, msg))
+	private def sendStickyMessage(msg: NodeSeq) {
+		partialUpdate(SetHtml(stickyId, <span class="comet-sticky">{msg}</span>))
 		sticky = msg
 	}
 	
 	private def sendMessage(msg: NodeSeq) {
-		partialUpdate(PrependHtml(messagesId, renderMessage(msg)))
+		partialUpdate(PrependHtml(messagesId, <div class="comet-message">{msg}</div>))
 		messages = msg :: messages
 	}
 
-	private def renderMessage(msg: NodeSeq): NodeSeq = <div>{msg}</div>
-
+	/*
+	* A message type that starts an import in either preview or final mode.
+	*/
+	private case class InitImportMode(val isPreview: Boolean)
+	
 	override def lowPriority = {
 		case InitImport(fph: FileParamHolder) => {
-			println("import.running= " + importer.isRunning)
+			// if no import in progress, start a new import in preview mode
 			if(!importer.isRunning) {
-				println("InitImport " + fph)
 				fileContent = Full(fph)
-				messages = Nil
-				importer.asyncImport(
-					Source.fromBytes(fph.file).getLines.toList,
-					new LiftActorImportListener(this),
-					true)
-				reRender(true)
+				this ! InitImportMode(true)
+			}
+		}
+		case InitImportMode(isPreview: Boolean) => {
+			fileContent match {
+				case Full(fph) => {
+					// reset and spawn a new asynchronous import
+					messages = Nil
+					importer.asyncImport(fph, new LiftActorImportListener(this), isPreview)
+					reRender(true)
+				}
+				case _ => {
+				}
 			}
 		}
 		case ImportStarted(msg) => {
@@ -79,17 +94,26 @@ class CometUpload extends CometActor {
 					{SHtml.a(() => { importer.cancel; Noop }, Text("cancel"))}
 				</lift:children>
 			}
-			sendSticky(clearAndRestartMessage)
+			sendStickyMessage(clearAndRestartMessage)
 		}
 		case ImportProgress(msg) => {
 			sendMessage(<span>{msg}</span>)
 		}
+		case ImportPreviewSucceeded(msg) => {
+			val beginForRealMessage: NodeSeq = {
+				<lift:children>
+					{ Text(msg) }
+					{ SHtml.a(() => { this ! InitImportMode(false); Noop }, Text("upload for real")) }
+				</lift:children>
+			}
+			sendStickyMessage(beginForRealMessage)
+		}
 		case ImportSucceeded(msg) => {
-			sendSticky(msg)
+			sendStickyMessage(Text(msg))
 			fileContent = Empty
 		}
 		case ImportFailed(msg) => {
-			sendSticky(msg)
+			sendStickyMessage(Text(msg))
 			fileContent = Empty
 		}
 	}

@@ -1,46 +1,74 @@
 package com.untyped.cometupload.csv
 
+import net.liftweb.http.FileParamHolder
+
 trait Importer {
-	
+	/*
+	* Internal exception subclasses for rolling backa preview and cancelling an import
+	*/
 	private class PreviewCompleteException(msg: String) extends Exception(msg)
 	private class CancelledException(msg: String) extends Exception(msg)
 	
+	/*
+	* Control variables for the import process.
+	*/
 	private var cancelled: Boolean = false
 	private var running: Boolean = false
 	
+	/*
+	* @return true if this import is running; false otherwise
+	*/
 	final def isRunning = running
 	
+	/*
+	* Interrupts and cancels the current import.
+	*/
 	final def cancel { cancelled = true }
 	
+	/*
+	* Used to stop an import process if a cancel command has been issued.
+	*/
 	final def stopIfCancelled {
 		if(cancelled) throw new CancelledException("Import cancelled")
 	}
 	
-	final def asyncImport(lines: List[String], listener: ImportListener, preview: Boolean) = {
+	/*
+	* Performs an asynchronous import of the given fph content.
+	* Starts a new syncImport inside a new Thread.
+	*
+	* @param fph A FileParamHolder containing the file contents.
+	* @param listener An ImportListener object that listens to the current import process.
+	* @param preview Set to true to abort the current transaction on import complete (rollback).
+	*/
+	final def asyncImport(fph: FileParamHolder, listener: ImportListener, preview: Boolean) = {
 		new Thread() {
-			override def run() { 
-				withTransaction { 
-					syncImport(lines, listener, preview) 
-				}
-			}
+			override def run() { syncImport(fph, listener, preview) }
 		}.start()
 	}
 	
-	final def syncImport(lines: List[String], listener: ImportListener, preview: Boolean): Boolean = {
+	/*
+	* Performs a synchronous import of the given fph content.
+	*
+	* @param fph A FileParamHolder containing the file contents.
+	* @param listener An ImportListener object that listens to the current import process.
+	* @param preview Set to true to abort the current transaction on import complete (rollback).
+	*/
+	final def syncImport(fph: FileParamHolder, listener: ImportListener, preview: Boolean): Boolean = {
 		try {
 			running = true
 			cancelled = false
 			withTransaction { 
-				listener.importStarted("Import started")
-				doImport(lines, listener)
+				listener.importStarted(if(preview) "Importing in preview mode" else "Importing")
+				doImport(fph, listener)
+				// rollback, if in preview mode
 				if(preview) throw new PreviewCompleteException("Preview complete")
 				stopIfCancelled
-				listener.importSucceeded("W00t!")
+				listener.importSucceeded("w00t!")
 				true
 			}
 		} catch {
 			case exn: PreviewCompleteException => {
-				listener.importSucceeded(exn.getMessage)
+				listener.importPreviewSucceeded(exn.getMessage)
 				true
 			}
 			case exn: Exception => {
@@ -48,25 +76,37 @@ trait Importer {
 				false
 			}
 		} finally {
-			println("finally")
 			running = false
 		}
 	}
 	
-	def doImport(lines: List[String], listener: ImportListener)
+	/*
+	* Must be overridden - defines the importing behaviour.
+	*
+	* @param fph A FileParamHolder containing the file contents.
+	* @param listener An ImportListener that listens for notifications during the import process.
+	*/
+	def doImport(fph: FileParamHolder, listener: ImportListener)
 	
+	/*
+	* Override this if you need some kind of transaction capabilities.
+	*/
 	def withTransaction[T](f : => T): T = f
-	
 }
 
+/* 
+* An example Importer that simply grabs a File line by line,
+* and sends each line as a message to the ImportListener.
+*/
 class DummyImporter extends Importer {
-	
-	def doImport(lines: List[String], listener: ImportListener) {
-		lines.foreach { line =>
-			stopIfCancelled
-			listener.importProgress(line)
-			Thread.sleep(1000)
+	def doImport(fph: FileParamHolder, listener: ImportListener) {
+		val lines = scala.io.Source.fromBytes(fph.file).getLines.toList
+		lines.zipWithIndex.foreach {
+			case (line: String, number: Int) => {
+				stopIfCancelled
+				listener.importProgress((number+1) + ": " + line)
+				Thread.sleep(200)
+			}
 		}
 	}
-	
 }

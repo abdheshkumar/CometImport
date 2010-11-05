@@ -10,8 +10,9 @@ class Boot {
     LiftRules.addToPackages("com.untyped.cometupload")
 
     // build sitemap
-    val entries = List(Menu("Home") / "index", Menu("Uploader") / "comet-upload") :::
-		Nil
+    val entries = List(
+		Menu("Import a file") / "index", 
+		Menu("Uploader") / "comet-upload" >> Loc.Hidden)
                   
     LiftRules.setSiteMap(SiteMap(entries:_*))
 

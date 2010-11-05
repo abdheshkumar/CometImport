@@ -4,7 +4,7 @@
     <meta name="description" content="" />
     <meta name="keywords" content="" />
     
-		<title>code:app:0.1-SNAPSHOT</title>
+		<title>Comet Uploader</title>
     <lift:CSS.blueprint />
     <lift:CSS.fancyType />
     <script id="jquery" src="/classpath/jquery.js" type="text/javascript"/>
@@ -51,17 +51,36 @@
 
 .file-info {
 	padding: 1ex;
-	border: 1px solid #ddd;
+	border: 1px solid #ccc;
 	background-color: #eee;
 }
-.sticky-message {
-	padding: 1ex;
+.file-info div {
+	margin: 1ex;
 }
-.comet-messages {
+
+.choose-file {
 	padding: 1ex;
 }
 
-.comet-messages div {
+.default-message {
+	background-color: #ffe;
+	border: 1px solid #ffc;
+	text-align: center;
+	padding: 1ex;
+	margin-bottom: 1ex;
+}
+
+.sticky-message {
+	margin-top: 1ex;
+	padding: 1ex;
+	background-color: #fee;
+	border: 1px solid #fcc;
+}
+.messages {
+	padding: 1ex;
+}
+
+.messages div {
 	margin-bottom: 1ex;
 	background-color: #eef;
 	padding: 1ex;
@@ -74,7 +93,7 @@
   <body>
     <div class="container">
       <div class="column span-12 last" style="text-align: right">
-        <h1 class="alt">app<img alt="" id="ajax-loader" style="display:none; margin-bottom: 0px; margin-left: 5px" src="/images/ajax-loader.gif"/></h1>
+        <h1 class="alt">CometUploader<img alt="" id="ajax-loader" style="display:none; margin-bottom: 0px; margin-left: 5px" src="/images/ajax-loader.gif"/></h1>
       </div>
 
       <hr/>
