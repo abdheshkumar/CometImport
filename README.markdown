@@ -6,7 +6,7 @@ The [index.html][index] page is a form for choosing and uploading a file. When a
 
 1. extracts the file;
 2. starts a [`CometActor`][comet-actor] to display progress;
-3. spawns a thread that processes the file line-by-line, sending progress reports to the `CometActor`.
+3. spawns a thread (via the [`ChooseFile`][choose-file] snippet) that processes the file line-by-line, sending progress reports to the [`CometActor`][comet-actor].
 
 The above is an instantiation of an importer pattern, comprising:
 
@@ -24,6 +24,7 @@ Two [`ImportListener`][import-listener] subtypes are provided:
 
 [index]: https://github.com/junglebarry/CometImport/blob/master/src/main/webapp/index.html "index.html"
 [comet-import]: https://github.com/junglebarry/CometImport/blob/master/src/main/webapp/comet-upload.html "comet-import.html"
+[choose-file]: https://github.com/junglebarry/CometImport/blob/master/src/main/scala/com/untyped/cometupload/snippet/ChooseFile.scala "ChooseFile"
 [importer]: https://github.com/junglebarry/CometImport/blob/master/src/main/scala/com/untyped/cometupload/csv/Importer.scala "Importer"
 [import-listener]: https://github.com/junglebarry/CometImport/blob/master/src/main/scala/com/untyped/cometupload/csv/ImportListener.scala "ImportListener"
 [dummy-importer]: https://github.com/junglebarry/CometImport/blob/master/src/main/scala/com/untyped/cometupload/csv/DummyImporter.scala "DummyImporter"
