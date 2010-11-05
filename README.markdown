@@ -28,3 +28,4 @@ Two [`ImportListener`][import-listener] subtypes are provided:
 [queue-listener]:  https://github.com/junglebarry/CometImport/blob/master/src/main/scala/com/untyped/cometupload/csv/MessageQueueImportListener.scala "MessageQueueImportListener"
 [actor-listener]:  https://github.com/junglebarry/CometImport/blob/master/src/main/scala/com/untyped/cometupload/csv/LiftActorImportListener.scala "LiftActorImportListener"
 [comet-upload]: https://github.com/junglebarry/CometImport/blob/master/src/main/scala/com/untyped/cometupload/comet/CometUpload.scala "CometUpload"
+[comet-actor]: http://scala-tools.org/mvnsites-snapshots/liftweb/scaladocs/net/liftweb/http/CometActor.html "CometActor"
