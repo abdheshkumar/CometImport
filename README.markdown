@@ -9,8 +9,8 @@ The [index.html][index] page is a form for choosing and uploading a file. When a
 3. spawns a thread that processes the file line-by-line, sending progress reports to the `CometActor`.
 
 The above is an instantiation of an importer pattern, comprising:
-* [`ImportListener`][import-listener], a trait that provides some basic progress reporting tools;
-* [`Importer`][importer], a trait that provides synchronous and asynchronous importing facilities, reporting to an [`ImportListener`][import-listener];
+ * [`ImportListener`][import-listener], a trait that provides some basic progress reporting tools;
+ * [`Importer`][importer], a trait that provides synchronous and asynchronous importing facilities, reporting to an [`ImportListener`][import-listener];
 
 This pattern can be applied by subclassing [`Importer`][importer] with the desired behaviour, and providing a (custom) instance of [`ImportListener`][import-listener].
 
