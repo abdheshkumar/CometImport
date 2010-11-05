@@ -18,6 +18,7 @@ This pattern can be applied by subclassing [`Importer`][importer] with the desir
 The specific incarnation deployed in this example Lift webapp uses a [`DummyImporter`][dummy-importer], which simply pulls the file apart line-by-line and sends each line to a [`ImportListener`][import-listener] as a message (with a short delay). 
 
 Two [`ImportListener`][import-listener] subtypes are provided: 
+
 1. [`MessageQueueImportListener`][queue-listener], which accumulates messages into a list;
 2. [`LiftActorImportListener`][actor-listener], which sends messages on to [`CometUpload`][comet-upload], our progress-reporting Comet-backed page.
 
