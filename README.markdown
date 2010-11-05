@@ -4,6 +4,8 @@ This project is a proof-of-concept for a file uploading paradigm using Comet. Es
 
 ## The demo app.
 
+... runs on port 8765 by default. Change by overriding project/build/Project.scala jettyPort
+
 The [index.html][index] page is a form for choosing and uploading a file. When a file is chosen, it is submitted as form-data to the [comet-import.html][comet-import] page, which:
 
 1. extracts the file;
